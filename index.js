@@ -1,3 +1,5 @@
+import playList from './assets/sounds/playList.js';
+
 let randomNum;
 
 //slider
@@ -40,7 +42,10 @@ const getTimeOfDay = hours => {
     return timesOfDay[Math.floor(hours / 6)];
 }
 
-const getRandomNum = () => {
+const getRandomNum = (bg = 20) => {
+    if (bg != 20) {
+        return Math.floor(Math.random() * bg);
+    }
     randomNum = Math.floor(Math.random() * 20) + 1;
 }
 
@@ -150,10 +155,77 @@ city.addEventListener('change', setCity);
 
 
 //quotes
-async function getQuotes() {  
+const quote = document.querySelector('.quote');
+const author = document.querySelector('.author');
+const quoteSwitchBtn = document.querySelector('.change-quote');
+
+async function getQuotes() {
     const quotes = 'data.json';
     const res = await fetch(quotes);
-    const data = await res.json(); 
-    console.log(data);
-  }
+    const data = await res.json();
+    const quoteNum = getRandomNum(data.length - 1);
+
+    quote.textContent = data[quoteNum].text;
+    author.textContent = data[quoteNum].author;
+}
 getQuotes();
+
+quoteSwitchBtn.addEventListener('click', getQuotes);
+
+
+const audio = new Audio();
+const playPauseBtn = document.querySelector('.play');
+const playNextBtn = document.querySelector('.play-next');
+const playPrevBtn = document.querySelector('.play-prev');
+const playerPlayList = document.querySelector('.play-list');
+let trackNum = 0;
+let isPlay = false;
+
+//player
+function playAudio(trackNum) {
+    if (isPlay === true) {
+        //TODO протестировать с отсутствующими треками
+        const allTracks = document.querySelectorAll('.play-item');
+        audio.src = playList[trackNum].src;
+        audio.currentTime = 0;
+        audio.play();
+        allTracks.forEach(element => {
+            element.classList.remove('item-active');
+        });
+        allTracks[trackNum].classList.add('item-active');
+    } else {
+        audio.pause();
+    }
+}
+
+function nextTrack() {
+    trackNum < playList.length - 1 ? trackNum++ : trackNum = 0;
+    playAudio(trackNum);
+}
+
+function prevTrack() {
+    trackNum > 0 ? trackNum-- : trackNum = playList.length - 1;
+    playAudio(trackNum);
+}
+
+playPauseBtn.addEventListener('click', () => {
+    playPauseBtn.classList.toggle('pause');
+    playPauseBtn.classList.contains('pause') ? isPlay = true : isPlay = false;
+    playAudio(trackNum);
+});
+
+function setPlayList() {
+    playList.forEach(item => {
+        let listItem = document.createElement('li');
+        let trackTitle = item.title;
+        listItem.textContent = trackTitle;
+        listItem.classList.add('play-item');
+        playerPlayList.append(listItem);
+    });
+}
+
+
+window.addEventListener('DOMContentLoaded', setPlayList);
+audio.addEventListener('ended', nextTrack);
+playNextBtn.addEventListener('click', nextTrack);
+playPrevBtn.addEventListener('click', prevTrack);
