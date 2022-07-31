@@ -179,33 +179,48 @@ const playPauseBtn = document.querySelector('.play');
 const playNextBtn = document.querySelector('.play-next');
 const playPrevBtn = document.querySelector('.play-prev');
 const playerPlayList = document.querySelector('.play-list');
+const trackCurrentTime = document.querySelector('.current-time');
+const currentTrackTitle = document.querySelector('.track-title');
+const trackTiming = document.querySelector('.track-timing');
 let trackNum = 0;
 let isPlay = false;
+let audioPlay;
 
 function playAudio(trackNum) {
     const allTracks = document.querySelectorAll('.play-item');
+
     allTracks.forEach(element => {
         element.classList.remove('item-active');
     });
     allTracks[trackNum].classList.add('item-active');
     if (isPlay === true) {
-        const allTracks = document.querySelectorAll('.play-item');
+        // const allTracks = document.querySelectorAll('.play-item');
         audio.src = playList[trackNum].src;
         audio.currentTime = 0;
         audio.play();
+        currentTrackTitle.textContent = `${playList[trackNum].title}`;
+        audioPlay = setInterval(function () {
+            let audioTime = Math.round(audio.currentTime);
+            let audioLength = Math.round(audio.duration);
+            trackCurrentTime.style.width = (audioTime * 100) / audioLength + '%';
+            trackTiming.textContent = (`${getTimeCodeFromNum(audioTime)} / ${getTimeCodeFromNum(audioLength)}`);
+        }, 5);
     } else {
         audio.pause();
+        clearInterval(audioPlay);
     }
 }
 
 function nextTrack() {
     trackNum < playList.length - 1 ? trackNum++ : trackNum = 0;
     playAudio(trackNum);
+    currentTrackTitle.textContent = `${playList[trackNum].title}`;
 }
 
 function prevTrack() {
     trackNum > 0 ? trackNum-- : trackNum = playList.length - 1;
     playAudio(trackNum);
+    currentTrackTitle.textContent = `${playList[trackNum].title}`;
 }
 
 playPauseBtn.addEventListener('click', () => {
@@ -223,6 +238,20 @@ function setPlayList() {
         listItem.classList.add('play-item');
         playerPlayList.append(listItem);
     });
+    document.querySelector('.play-item').classList.add('item-active');
+}
+
+function getTimeCodeFromNum(num) {
+    let seconds = parseInt(num);
+    let minutes = parseInt(seconds / 60);
+    seconds -= minutes * 60;
+    const hours = parseInt(minutes / 60);
+    minutes -= hours * 60;
+
+    if (hours === 0) return `${minutes}:${String(seconds % 60).padStart(2, 0)}`;
+    return `${String(hours).padStart(2, 0)}:${minutes}:${String(
+        seconds % 60
+    ).padStart(2, 0)}`;
 }
 
 
