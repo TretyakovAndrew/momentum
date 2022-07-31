@@ -37,7 +37,7 @@ const showGreeting = () => {
 }
 
 const getTimeOfDay = hours => {
-    const timesOfDay = ['night', 'morning', 'day', 'evening'];
+    const timesOfDay = ['night', 'morning', 'afternoon', 'evening'];
 
     return timesOfDay[Math.floor(hours / 6)];
 }
@@ -48,6 +48,9 @@ const getRandomNum = (bg = 20) => {
     }
     randomNum = Math.floor(Math.random() * 20) + 1;
 }
+
+showTime();
+showGreeting();
 
 //исправить, вызов самой себя, зациклтвания нет, но выглядит стремно
 const setUserName = () => {
@@ -79,6 +82,7 @@ const setBg = () => {
     randomNum < 10 ? bgNum = "0" + randomNum : bgNum = randomNum.toString();
     const img = new Image();
     img.src = `https://raw.githubusercontent.com/rolling-scopes-school/stage1-tasks/assets/images/${timeOfDay}/${bgNum}.jpg`;
+    // img.src = `https://github.com/TretyakovAndrew/momentum/tree/assets/images/${timeOfDay}/${bgNum}.jpg`;
     img.addEventListener('load', () => {
         body.style.backgroundImage = `url(${img.src})`;
     })
@@ -100,9 +104,6 @@ nextSlide.addEventListener('click', getSlideNext);
 getRandomNum();
 setUserName();
 setBg();
-showTime();
-showGreeting();
-
 
 
 //WEATHER//
@@ -172,7 +173,7 @@ getQuotes();
 
 quoteSwitchBtn.addEventListener('click', getQuotes);
 
-
+//player
 const audio = new Audio();
 const playPauseBtn = document.querySelector('.play');
 const playNextBtn = document.querySelector('.play-next');
@@ -181,18 +182,17 @@ const playerPlayList = document.querySelector('.play-list');
 let trackNum = 0;
 let isPlay = false;
 
-//player
 function playAudio(trackNum) {
+    const allTracks = document.querySelectorAll('.play-item');
+    allTracks.forEach(element => {
+        element.classList.remove('item-active');
+    });
+    allTracks[trackNum].classList.add('item-active');
     if (isPlay === true) {
-        //TODO протестировать с отсутствующими треками
         const allTracks = document.querySelectorAll('.play-item');
         audio.src = playList[trackNum].src;
         audio.currentTime = 0;
         audio.play();
-        allTracks.forEach(element => {
-            element.classList.remove('item-active');
-        });
-        allTracks[trackNum].classList.add('item-active');
     } else {
         audio.pause();
     }
@@ -218,7 +218,8 @@ function setPlayList() {
     playList.forEach(item => {
         let listItem = document.createElement('li');
         let trackTitle = item.title;
-        listItem.textContent = trackTitle;
+        let trackDuration = item.duration;
+        listItem.textContent = `${trackTitle} | ${trackDuration}`;
         listItem.classList.add('play-item');
         playerPlayList.append(listItem);
     });
