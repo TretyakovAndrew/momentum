@@ -117,37 +117,56 @@ body {
 
 .play-list {
   text-align: left;
-  max-height: 115px;
+  max-height: 90px;
+  overflow-y: scroll;
 }
 
-/* .play-list::-webkit-scrollbar {
-  width: 10px;
+.play-list::-webkit-scrollbar {
+  width: 5px;
   background-color: #f9f9fd;
   border-radius: 10px;
 }
 
 .play-list::-webkit-scrollbar-thumb {
   border-radius: 10px;
-  background-color: #18aaaa;
+  background-color: #C5B358;
 }
 
 .play-list::-webkit-scrollbar-track {
   box-shadow: inset 0 0 6px rgba(0,0,0,0.2);
   border-radius: 10px;
   background-color: #f9f9fd;
-} */
+}
 
 .play-item {
+  display: flex;
   position: relative;
   padding: 5px;
   padding-left: 20px;
   list-style: none;
   opacity: .8;
-  cursor: pointer;
   transition: .3s;
 }
 
+.track-play {
+  margin-left: 10px;
+  width: 20px;
+  height: 20px;
+}
+
+.track-pause {
+  margin-left: 10px;
+  width: 20px;
+  height: 20px;
+  
+}
+
+.track-play:hover {
+  cursor: pointer;
+}
+
 .play-item:hover {
+  cursor: pointer;
   opacity: 1;
 }
 
@@ -157,6 +176,10 @@ body {
   left: 0;
   top: 2px;
   font-weight: 900;
+}
+
+.item-active {
+  color: #C5B358;
 }
 
 .item-active::before {
@@ -356,6 +379,17 @@ body {
 
 .author {
   min-height: 20px;
+}
+
+.lang {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  font-size: 32px;
+}
+
+.lang:hover {
+  cursor: pointer;
 }
 
 @media (max-width: 768px) {

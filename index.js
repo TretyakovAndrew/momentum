@@ -1,13 +1,31 @@
+import i18next from 'https://deno.land/x/i18next/index.js';
+import { translations } from './lang.js';
 import playList from './assets/sounds/playList.js';
 
+
+await i18next.init({
+    lng: 'en',
+    debug: true,
+    resources: translations
+});
+
+///переделать
+console.log(i18next.t('GoodNight'));
+////////
+const greetingTranslation = {
+    'en': ["Good night", "Good morning", "Good afternoon", " Good evening"],
+    'ru': ["Доброй ночи", "Доброе утро", "Добрый день", "Добрый вечер"],
+};
+
 let randomNum;
+let lang = 'en';
+
 
 //slider
 let prevSlide = document.querySelector('.slide-prev');
 let nextSlide = document.querySelector('.slide-next');
 
 //slider
-
 
 const showTime = () => {
     const time = document.querySelector('.time');
@@ -16,23 +34,24 @@ const showTime = () => {
     time.textContent = currentTime;
     setTimeout(showTime, 1000);
     showDate();
-    showGreeting();
+    showGreeting(lang);
 }
 
 const showDate = () => {
     const displayedDate = document.querySelector('.date');
     const date = new Date();
     const options = { weekday: 'long', month: 'long', day: '2-digit' };
-    const currentDate = date.toLocaleDateString('en-US', options);
+    const currentDate = lang === 'en' ? date.toLocaleDateString('en-US', options) : date.toLocaleDateString('ru-RU', options);
     displayedDate.textContent = currentDate;
 }
 
-const showGreeting = () => {
+const showGreeting = (lang = 'en') => {
     const greeting = document.querySelector('.greeting');
     const date = new Date();
     const hours = date.getHours();
     const timeOfDay = getTimeOfDay(hours);
-    const greetingText = `Good ${timeOfDay}`
+    const greetingText = greetingTranslation[lang][Math.floor(hours / 6)];
+    // const greetingText = `Good ${timeOfDay}`
     greeting.textContent = greetingText;
 }
 
@@ -50,7 +69,7 @@ const getRandomNum = (bg = 20) => {
 }
 
 showTime();
-showGreeting();
+showGreeting(lang);
 
 //исправить, вызов самой себя, зациклтвания нет, но выглядит стремно
 const setUserName = () => {
@@ -72,20 +91,31 @@ const setUserName = () => {
 }
 
 
-const setBg = () => {
+let bgSourse; //background sourse variable  при сохранении в local storage присваивать значение при загрузке страницы
+const setBg = (bgSourse = 'gh') => {
     const body = document.body;
-    const date = new Date();   //продублировано
-    const hours = date.getHours(); //продублировано
-    const timeOfDay = getTimeOfDay(hours);
 
-    let bgNum;
-    randomNum < 10 ? bgNum = "0" + randomNum : bgNum = randomNum.toString();
-    const img = new Image();
-    img.src = `https://raw.githubusercontent.com/rolling-scopes-school/stage1-tasks/assets/images/${timeOfDay}/${bgNum}.jpg`;
-    // img.src = `https://github.com/TretyakovAndrew/momentum/tree/assets/images/${timeOfDay}/${bgNum}.jpg`;
-    img.addEventListener('load', () => {
-        body.style.backgroundImage = `url(${img.src})`;
-    })
+    if (bgSourse === 'gh') {
+        const date = new Date();
+        const hours = date.getHours(); //продублировано
+        const timeOfDay = getTimeOfDay(hours);
+        let bgNum;
+        randomNum < 10 ? bgNum = "0" + randomNum : bgNum = randomNum.toString();
+        const img = new Image();
+        img.src = `https://raw.githubusercontent.com/rolling-scopes-school/stage1-tasks/assets/images/${timeOfDay}/${bgNum}.jpg`;
+        // img.src = `https://github.com/TretyakovAndrew/momentum/tree/assets/images/${timeOfDay}/${bgNum}.jpg`;
+        img.addEventListener('load', () => {
+            body.style.backgroundImage = `url(${img.src})`;
+        })
+    } else if (bgSourse === 'unsplash') {
+        async function getLinkToImage() {
+            const url = 'https://api.unsplash.com/photos/random?orientation=landscape&query=nature&client_id=x2YMzrlnDSwCb4_nXWaF8RUyPrNgomPLsyrsrr-RO3c';
+            const res = await fetch(url);
+            const data = await res.json();
+            // console.log(data.urls.regular)
+            return data.urls.regular;
+        }
+    }
 }
 
 const getSlideNext = () => {
@@ -123,8 +153,8 @@ if (localStorage.getItem('city')) {
     city.value = 'Minsk';
 }
 
-async function getWeather() {
-    const url = `https://api.openweathermap.org/data/2.5/weather?q=${city.value}&lang=en&appid=89274f8372c411e6c202134024e9c1a5&units=metric`;
+async function getWeather(lang = 'en') {
+    const url = `https://api.openweathermap.org/data/2.5/weather?q=${city.value}&lang=${lang}&appid=89274f8372c411e6c202134024e9c1a5&units=metric`;
     const res = await fetch(url);
     const data = await res.json();
 
@@ -133,23 +163,23 @@ async function getWeather() {
     weatherIcon.classList.add(`owf-${data.weather[0].id}`);
     temperature.textContent = `${data.main.temp.toFixed(0)}°C`;
     weatherDescription.textContent = data.weather[0].description;
-    wind.textContent = `Wind speed: ${Math.floor(data.wind.speed)} m/s`;
-    humidity.textContent = `Humidity: ${data.main.humidity.toFixed(0)}%`;
+    wind.textContent = lang === 'en' ? `Wind speed: ${Math.floor(data.wind.speed)} m/s` : `Скорость ветра: ${Math.floor(data.wind.speed)} м/с`;
+    humidity.textContent = lang === 'en' ? `Humidity: ${data.main.humidity.toFixed(0)}%` : `Влажность: ${data.main.humidity.toFixed(0)}%`;
 }
 
 function setCity(event) {
     if (event.code === 'Enter') {
-        getWeather();
+        getWeather(lang);
         city.blur();
     }
-    getWeather();
+    getWeather(lang);
 }
 
 function setCityLocalStorage() {
     localStorage.setItem('city', city.value);
 }
 
-document.addEventListener('DOMContentLoaded', getWeather);
+document.addEventListener('DOMContentLoaded', getWeather(lang));
 city.addEventListener('keypress', setCity);
 city.addEventListener('change', setCity);
 
@@ -161,13 +191,12 @@ const author = document.querySelector('.author');
 const quoteSwitchBtn = document.querySelector('.change-quote');
 
 async function getQuotes() {
-    const quotes = 'data.json';
+    const quotes = 'quotes.json';
     const res = await fetch(quotes);
     const data = await res.json();
     const quoteNum = getRandomNum(data.length - 1);
-
-    quote.textContent = data[quoteNum].text;
-    author.textContent = data[quoteNum].author;
+    quote.textContent = data[quoteNum][`${lang}`][0];
+    author.textContent = data[quoteNum][`${lang}`][1];
 }
 getQuotes();
 
@@ -233,12 +262,16 @@ playPauseBtn.addEventListener('click', () => {
 });
 
 function setPlayList() {
-    playList.forEach(item => {
+    playList.forEach((item, index) => {
         let listItem = document.createElement('li');
         let trackTitle = item.title;
-        let trackDuration = item.duration;
-        listItem.textContent = `${trackTitle} | ${trackDuration}`;
+        let trackPlayBtn = document.createElement('div');
+        trackPlayBtn.classList.add('track-play');
+        trackPlayBtn.style.backgroundImage = `url(../assets/svg/track-play-btn.svg)`;
+        listItem.textContent = `${trackTitle}`;
         listItem.classList.add('play-item');
+        listItem.id = index;
+        listItem.append(trackPlayBtn);
         playerPlayList.append(listItem);
     });
     document.querySelector('.play-item').classList.add('item-active');
@@ -269,24 +302,48 @@ function muteSound() {
     }
 }
 
-
-
-
 window.addEventListener('DOMContentLoaded', setPlayList);
 audio.addEventListener('ended', nextTrack);
 playNextBtn.addEventListener('click', nextTrack);
 playPrevBtn.addEventListener('click', prevTrack);
 muteBtn.addEventListener('click', muteSound);
 progressBar.addEventListener("click", e => {
-  const timelineWidth = window.getComputedStyle(progressBar).width;
-  const timeToSeek = e.offsetX / parseInt(timelineWidth) * audio.duration;
-  audio.currentTime = timeToSeek;
+    const timelineWidth = window.getComputedStyle(progressBar).width;
+    const timeToSeek = e.offsetX / parseInt(timelineWidth) * audio.duration;
+    audio.currentTime = timeToSeek;
 }, false);
 
 const volumeBar = document.querySelector(".volume");
 volumeBar.addEventListener('click', e => {
-  const barWidth = window.getComputedStyle(volumeBar).width;
-  const newVolume = e.offsetX / parseInt(barWidth);
-  audio.volume = newVolume;
-  soundVolume.style.width = newVolume * 100 + '%';
+    const barWidth = window.getComputedStyle(volumeBar).width;
+    const newVolume = e.offsetX / parseInt(barWidth);
+    audio.volume = newVolume;
+    soundVolume.style.width = newVolume * 100 + '%';
 }, false);
+
+playerPlayList.onclick = function (event) {
+    let target = event.target;
+    trackNum = target.id;
+    playAudio(trackNum);
+    isPlay = true;
+}
+
+const appLang = document.querySelector('.lang');
+appLang.addEventListener('click', () => {
+    lang === 'en' ? lang = 'ru' : lang = 'en';
+    getQuotes();
+    getWeather(lang);
+})
+
+//images API
+// async function getLinkToImage() {
+//     const url = 'https://api.unsplash.com/photos/random?orientation=landscape&query=nature&client_id=x2YMzrlnDSwCb4_nXWaF8RUyPrNgomPLsyrsrr-RO3c';
+//     const res = await fetch(url); //then 
+//     const data = await res.json();
+//     // console.log(data.urls.regular)
+//     return data.urls.regular;
+// }
+
+// const imh = await getLinkToImage();
+// console.log(imh);                                                                                                     
+// document.getElementById('pic').src = imh;
